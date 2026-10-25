@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Field Note</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;700&family=Cormorant+Garamond:ital,wght@0,300;1,300&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  width: 540px;
+  min-height: 960px;
+  background: #0d1117;
+  font-family: 'Noto Serif SC', serif;
+  position: relative;
+  overflow: hidden;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(ellipse 70% 60% at 85% 15%, rgba(255, 180, 88, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 15% 85%, rgba(88, 166, 255, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ===== 四角坐标（写死）===== */
+.corner {
+  position: absolute;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 9px;
+  z-index: 20;
+  line-height: 1.5;
+  letter-spacing: 2px;
+  white-space: nowrap;  /* 四角禁止自动换行；仅允许 <br> 显式分行 */
+}
+.corner-tl { top: 28px; left: 28px; color: rgba(255,255,255,0.28); }
+.corner-tr { top: 28px; right: 28px; color: rgba(255,180,80,0.38); text-align: right; }
+.corner-bl { bottom: 60px; left: 28px; color: rgba(255,255,255,0.18); }
+.corner-br { bottom: 60px; right: 28px; color: rgba(255,180,80,0.38); text-align: right; }
+
+/* ===== 主内容区（写死）===== */
+.layer {
+  position: relative;
+  z-index: 1;
+  height: 960px;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;   /* 统一垂直居中（封面/正文/封底，生成器按页型注入 MAIN_STYLE） */
+  align-items: flex-start;
+  padding: 0 44px 44px;
+}
+
+/* ===== 内容组件===== */
+.st { font-family: 'Noto Serif SC', serif; font-weight: 700; font-size: 30px; letter-spacing: 1px; color: #ffffff; margin-bottom: 14px; }
+.prose { font-family: 'Noto Serif SC', serif; font-weight: 400; font-size: 18px; line-height: 1.85; color: #d6dde6; margin-bottom: 14px; }
+.prose .em { color: #ffffff; font-weight: 700; }
+.pullquote { border-left: 3px rgba(255,180,80,0.4); background: rgba(255,180,80,0.06); padding: 12px 16px; margin: 10px 0; }
+.pullquote-text { font-family: 'Noto Serif SC', serif; font-weight: 400; font-size: 18px; line-height: 1.75; color: #f0f4f8; }
+.analogy-box { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; padding: 12px 16px; margin: 10px 0; }
+.analogy-box p { font-family: 'Noto Serif SC', serif; font-weight: 400; font-size: 18px; line-height: 1.8; color: #f0f4f8; }
+.research-box { background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.07); border-radius: 6px; padding: 14px 16px; margin: 10px 0; }
+.research-box p { font-family: 'Noto Serif SC', serif; font-weight: 400; font-size: 18px; line-height: 1.8; color: #f0f4f8; }
+.engineer-box { background: rgba(88,166,255,0.05); border: 1px solid rgba(88,166,255,0.15); border-radius: 6px; padding: 13px 16px; margin: 10px 0; }
+.engineer-box p { font-family: 'Noto Serif SC', serif; font-weight: 400; font-size: 18px; line-height: 1.8; color: #f0f4f8; }
+
+/* ===== Hero image（禁止手写 img 标签改版式，统一由 generator.py --hero 生成）=====
+   宽图/方图 → .hero-cover：固定高度 110px cover 裁剪
+   长图/截图 → .hero-contain：完整显示，max-height 240px，绝不裁剪
+   main 是 flex 容器，.hero-wrap 必须显式 width:100% */
+.hero-wrap { width: 100%; margin: 0; }
+.hero-img { width: 100%; display: block; border-radius: 6px; margin-bottom: 12px; background: rgba(255,255,255,0.04); }
+.hero-cover { height: 110px; object-fit: cover; }
+.hero-contain { height: auto; max-height: 300px; width: auto; max-width: 100%; margin: 0 auto 12px; object-fit: contain; }
+.img-caption { font-family: 'Noto Serif SC', serif; font-size: 8.5px; color: rgba(255,180,80,0.38); letter-spacing: 2px; margin-bottom: 12px; text-align: center; }
+
+/* 封底落款（唯一作者出现处，写死） */
+.sign-off { margin-top: 36px; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 11px; color: rgba(255,255,255,0.32); letter-spacing: 3px; text-align: center; }
+
+/* 全文禁止链接、禁止提信源：cite 一律隐藏 */
+cite { display: none; }
+</style>
+</head>
+<body>
+
+<!-- LAYOUT: cover | content | back -->
+<!-- PAGE_NUM: 01, 02, 03...（一律两位数字） -->
+<!-- AUTHOR: 扎克的自留地 -->
+<!-- DATE_STR: 2026.06.01 -->
+<!-- DAY_STR: Monday -->
+<!-- THEME_KEYWORD: 主题提炼短语（内容页左上角，禁换行） -->
+<!-- NEXT_NUM: 下一页页码（两位） -->
+<!-- TOTAL: 总页数（两位） -->
+
+<!-- CONTENT_BLOCKS: 主内容区HTML片段（可含 {HERO} 占位符） -->
+<!-- 规则：
+   - 封面背景图 = 生图能力按文章主题生成的写实图，禁止 Unsplash 示例图
+   - 副标题下方引言区：只允许一句主旨，禁止作者名/日期/署名
+   - 正文页配图：只用 generator.py --hero（自动 cover/contain），禁止手写 img 改版式
+   - 封底：水平+垂直居中，只允许一段结束语 + <div class="sign-off">—— 扎克的自留地 ——</div>
+   - 全文禁止链接、禁止提信源、禁止花体字（正文只用 Noto Serif SC） -->
+
+<div class="layer" style="background:#0d1117;">
+
+  <!-- 四角（根据layout类型填充） -->
+  <div class="corner corner-tl">{{TOP_LEFT}}</div>
+  <div class="corner corner-tr">{{TOP_RIGHT}}</div>
+  <div class="corner corner-bl">{{BOTTOM_LEFT}}</div>
+  <div class="corner corner-br">{{BOTTOM_RIGHT}}</div>
+
+  <!-- 主内容区 -->
+  <!-- 封面：vertical-centered，add bg image to .layer -->
+  <!-- 内容/封底：top-aligned (52px from .layer padding-top) -->
+  <div class="main" style="{{MAIN_STYLE}}">
+    {{CONTENT_BLOCKS}}
+  </div>
+
+</div>
+
+</body>
+</html>
